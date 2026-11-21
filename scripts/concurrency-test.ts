@@ -1,5 +1,5 @@
 /**
- * Concurrency Test Script (Nilai Tambah #2)
+ * Concurrency Test Script (High-Concurrency Stress Test)
  *
  * Skenario:
  * 1. Menyiapkan Event dengan kuota tepat 100 tiket (70 Regular, 30 VIP).

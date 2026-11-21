@@ -6,7 +6,7 @@ Backend RESTful API untuk platform penjualan tiket event dengan kuota terbatas, 
 
 ## 📋 Daftar Isi
 1. [Fitur Utama & Pemenuhan Kebutuhan Bisnis](#fitur-utama--pemenuhan-kebutuhan-bisnis)
-2. [Nilai Tambah (Opsional)](#nilai-tambah-opsional)
+2. [Fitur Lanjutan & Keandalan Sistem](#fitur-lanjutan--keandalan-sistem)
 3. [Bukti Uji Konkurensi 200 Pesanan Bersamaan](#bukti-uji-konkurensi-200-pesanan-bersamaan)
 4. [Cara Menjalankan Sistem (Satu Perintah)](#cara-menjalankan-sistem-satu-perintah)
 5. [Cara Menjalankan Pengujian Otomatis](#cara-menjalankan-pengujian-otomatis)
@@ -32,7 +32,7 @@ Backend RESTful API untuk platform penjualan tiket event dengan kuota terbatas, 
 
 ---
 
-## 🌟 Nilai Tambah (Opsional)
+## 🛡️ Fitur Lanjutan & Keandalan Sistem (*Advanced Reliability*)
 
 ### 1. Webhook Pembayaran Idempoten (`POST /api/payments/webhook`)
 Mendukung skenario payment gateway sungguhan:
@@ -153,7 +153,7 @@ curl -X POST http://localhost:3000/api/payments/simulate \
   -d '{"order_id": "{ORDER_ID}"}'
 ```
 
-### Cara 2: Menggunakan Webhook Pembayaran Idempoten (Nilai Tambah #1)
+### Cara 2: Menggunakan Webhook Pembayaran Idempoten (*Enterprise Resilience*)
 Mensimulasikan panggilan notifikasi webhook dari payment provider:
 
 ```bash
@@ -261,7 +261,7 @@ ticket-selling/
 │   └── workflows/
 │       └── ci.yml               # GitHub Actions CI/CD pipeline
 ├── scripts/
-│   └── concurrency-test.ts      # Uji stres 200 pesanan serentak (Nilai Tambah #2)
+│   └── concurrency-test.ts      # Uji stres 200 pesanan serentak (Anti-Oversell Proof)
 ├── src/
 │   ├── config/
 │   │   └── env.ts               # Manajemen variabel lingkungan

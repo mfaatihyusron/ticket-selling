@@ -109,7 +109,7 @@ flowchart TD
 
 ---
 
-## 5. Webhook Pembayaran Idempoten & Kasus Tepi (Nilai Tambah #1)
+## 5. Webhook Pembayaran Idempoten & Kasus Tepi (Payment Gateway Resilience)
 
 Penyedia pembayaran riil (seperti Midtrans, Xendit, Stripe) menggunakan model *at-least-once delivery*, di mana notifikasi HTTP bisa dikirim berulang kali.
 

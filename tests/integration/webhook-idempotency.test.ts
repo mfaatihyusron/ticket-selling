@@ -4,7 +4,7 @@ import { createApp } from '../../src/app';
 import { setupTestDb } from '../test-db';
 import { getDb } from '../../src/db/pool';
 
-describe('Payment Webhook Idempotency & Edge Cases (Nilai Tambah #1)', () => {
+describe('Payment Webhook Idempotency & Edge Cases', () => {
   let app: ReturnType<typeof createApp>;
 
   beforeEach(async () => {
