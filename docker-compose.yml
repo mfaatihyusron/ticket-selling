@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: ticket-selling-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ticket_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ticket_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ticket-selling-api
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:postgrespassword@db:5432/ticket_db
+      ORDER_EXPIRY_MINUTES: 15
+      EXPIRY_SWEEPER_INTERVAL_MS: 15000
+      WEBHOOK_SECRET: supersecretwebhookkey123
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
