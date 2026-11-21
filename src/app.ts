@@ -1,5 +1,6 @@
 import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import path from 'path';
 import { eventsRouter } from './modules/events/events.router';
 import { ordersRouter } from './modules/orders/orders.router';
 import { paymentsRouter } from './modules/payments/payments.router';
@@ -11,6 +12,10 @@ export function createApp(): Application {
   // Middleware
   app.use(cors());
   app.use(express.json());
+
+  // Serve static UI frontend
+  const publicDir = path.join(process.cwd(), 'public');
+  app.use(express.static(publicDir));
 
   // Health check
   app.get('/health', (_req: Request, res: Response) => {

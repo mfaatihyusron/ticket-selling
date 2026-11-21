@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TiketFest 2026 - Platform Penjualan Tiket Kuota Terbatas</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .ticket-stub {
+      background-image: radial-gradient(circle at 0 50%, transparent 12px, #1e293b 13px),
+                        radial-gradient(circle at 100% 50%, transparent 12px, #1e293b 13px);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
+
+  <!-- Top Navbar -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+          <i data-lucide="ticket" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <span class="text-lg font-bold tracking-tight bg-gradient-to-r from-white via-slate-200 to-indigo-300 bg-clip-text text-transparent">TiketFest 2026</span>
+          <span class="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">API v1.0</span>
+        </div>
+      </div>
+
+      <!-- User Switcher & Status -->
+      <div class="flex items-center space-x-4">
+        <div class="hidden sm:flex items-center space-x-2 text-xs text-slate-400 bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700/60">
+          <i data-lucide="user" class="w-3.5 h-3.5 text-indigo-400"></i>
+          <span>Pembeli:</span>
+          <input id="userIdInput" type="text" value="budi.santoso@example.com" class="bg-transparent text-slate-200 font-medium focus:outline-none w-48 text-xs border-b border-dashed border-slate-600 focus:border-indigo-400" title="Ubah email untuk simulasi user lain" />
+        </div>
+        <button onclick="loadInitialData()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Refresh Data">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full space-y-8">
+    
+    <!-- Hero / Architecture Banner -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 border border-indigo-500/20 p-6 sm:p-8 shadow-2xl">
+      <div class="relative z-10 max-w-3xl space-y-3">
+        <div class="inline-flex items-center space-x-2 text-xs font-semibold text-indigo-400 uppercase tracking-wider bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+          <span>ACID Transaksi & Anti-Oversell Engine</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Sistem Penjualan Tiket Kuota Terbatas</h1>
+        <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+          Platform pemesanan tiket dengan penahanan kuota 15 menit, batas 4 tiket per akun, proteksi konkurensi skala tinggi, dan webhook pembayaran idempoten.
+        </p>
+      </div>
+      <div class="absolute -right-10 -bottom-10 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex border-b border-slate-800 space-x-2 sm:space-x-4">
+      <button onclick="switchTab('catalog')" id="tab-catalog" class="tab-btn px-4 py-2.5 font-medium text-sm border-b-2 border-indigo-500 text-white flex items-center space-x-2">
+        <i data-lucide="calendar" class="w-4 h-4"></i>
+        <span>Katalog Event & Beli</span>
+      </button>
+      <button onclick="switchTab('active-orders')" id="tab-active-orders" class="tab-btn px-4 py-2.5 font-medium text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="clock" class="w-4 h-4"></i>
+        <span>Pesanan Menunggu Bayar</span>
+        <span id="activeOrderBadge" class="hidden text-xs bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded-full font-bold">1</span>
+      </button>
+      <button onclick="switchTab('my-tickets')" id="tab-my-tickets" class="tab-btn px-4 py-2.5 font-medium text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="ticket" class="w-4 h-4"></i>
+        <span>E-Tiket & Riwayat</span>
+      </button>
+      <button onclick="switchTab('concurrency')" id="tab-concurrency" class="tab-btn px-4 py-2.5 font-medium text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
+        <span class="text-amber-400">Uji 200 Pesanan (Bonus #2)</span>
+      </button>
+    </div>
+
+    <!-- Alert / Toast Container -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 max-w-md w-full px-4"></div>
+
+    <!-- TAB 1: Katalog Event & Beli -->
+    <section id="catalogSection" class="space-y-6">
+      <div id="eventsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Event Cards dynamically rendered here -->
+        <div class="col-span-full py-12 text-center text-slate-500">Memuat event...</div>
+      </div>
+    </section>
+
+    <!-- TAB 2: Pesanan Aktif (Menunggu Bayar) -->
+    <section id="activeOrdersSection" class="hidden space-y-6">
+      <div id="activeOrdersContainer" class="space-y-4">
+        <!-- Active orders rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 3: E-Tiket & Riwayat -->
+    <section id="myTicketsSection" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-white">E-Tiket & Riwayat Pesanan</h2>
+          <p class="text-xs text-slate-400">Daftar tiket resmi yang telah lunas dan siap digunakan.</p>
+        </div>
+        <button onclick="loadUserTickets()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs rounded-lg text-slate-300 font-medium">
+          Muat Ulang
+        </button>
+      </div>
+      <div id="ticketsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Ticket cards rendered dynamically -->
+      </div>
+    </section>
+
+    <!-- TAB 4: Uji Konkurensi 200 Pesanan -->
+    <section id="concurrencySection" class="hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6">
+        <div class="max-w-2xl">
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i>
+            <span>Simulasi Uji Konkurensi 200 Permintaan Serentak</span>
+          </h2>
+          <p class="text-sm text-slate-400 mt-2">
+            Menguji ketahanan sistem saat **200 pembeli unik** berebut kuota **100 tiket** pada milidetik yang sama menggunakan Promise paralel.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+            <span class="text-xs text-slate-400">Total Kuota Event</span>
+            <div class="text-2xl font-black text-white mt-1">100 Tiket</div>
+            <span class="text-[11px] text-slate-500">70 Reguler + 30 VIP</span>
+          </div>
+          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+            <span class="text-xs text-slate-400">Permintaan Masuk</span>
+            <div class="text-2xl font-black text-indigo-400 mt-1">200 User</div>
+            <span class="text-[11px] text-slate-500">Serentak di 1 batch</span>
+          </div>
+          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+            <span class="text-xs text-slate-400">Target Berhasil</span>
+            <div class="text-2xl font-black text-emerald-400 mt-1">Tepat 100</div>
+            <span class="text-[11px] text-emerald-500">HTTP 201 Created</span>
+          </div>
+          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+            <span class="text-xs text-slate-400">Target Ditolak Kuota</span>
+            <div class="text-2xl font-black text-rose-400 mt-1">Tepat 100</div>
+            <span class="text-[11px] text-rose-500">HTTP 409 Conflict</span>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <button id="runConcurrencyBtn" onclick="runClientConcurrencyTest()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 font-bold text-sm text-slate-950 shadow-lg shadow-amber-500/20 flex items-center space-x-2 transition">
+            <i data-lucide="play" class="w-4 h-4 fill-slate-950"></i>
+            <span>Jalankan Uji Konkurensi Sekarang</span>
+          </button>
+          <span class="text-xs text-slate-500">Atau jalankan skrip terminal: <code class="text-indigo-400 bg-slate-950 px-2 py-1 rounded">npm run test:concurrency</code></span>
+        </div>
+
+        <div id="concurrencyProgress" class="hidden space-y-3">
+          <div class="flex justify-between text-xs text-slate-300">
+            <span id="concurrencyStatusText">Mengirim 200 request bersamaan...</span>
+            <span id="concurrencyPercent">0%</span>
+          </div>
+          <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+            <div id="concurrencyProgressBar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
+          </div>
+        </div>
+
+        <div id="concurrencyReport" class="hidden bg-slate-950 rounded-xl p-4 font-mono text-xs border border-slate-800 text-slate-300 overflow-x-auto whitespace-pre"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 bg-slate-950/80 py-6 text-center text-xs text-slate-500">
+    TiketFest 2026 &copy; Final Project Back-End Intermediate. Dibangun dengan TypeScript, Node.js, Express, PostgreSQL, dan Docker.
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    let currentTab = 'catalog';
+    let eventsData = [];
+    let pendingOrders = [];
+    let timerIntervals = {};
+
+    function formatRupiah(num) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num);
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const color = type === 'success' ? 'bg-emerald-950 border-emerald-500/50 text-emerald-200' :
+                    type === 'error' ? 'bg-rose-950 border-rose-500/50 text-rose-200' :
+                    'bg-slate-900 border-indigo-500/50 text-slate-200';
+      
+      toast.className = `p-4 rounded-xl border shadow-xl flex items-center justify-between text-xs transition transform duration-200 ${color}`;
+      toast.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <span>${message}</span>
+        </div>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => { toast.remove(); }, 4000);
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-indigo-500', 'text-white');
+        btn.classList.add('border-transparent', 'text-slate-400');
+      });
+      document.getElementById(`tab-${tab}`).classList.add('border-indigo-500', 'text-white');
+      document.getElementById(`tab-${tab}`).classList.remove('border-transparent', 'text-slate-400');
+
+      ['catalog', 'active-orders', 'my-tickets', 'concurrency'].forEach(t => {
+        const sec = document.getElementById(t === 'catalog' ? 'catalogSection' :
+                                           t === 'active-orders' ? 'activeOrdersSection' :
+                                           t === 'my-tickets' ? 'myTicketsSection' : 'concurrencySection');
+        sec.classList.toggle('hidden', t !== tab);
+      });
+
+      if (tab === 'my-tickets') loadUserTickets();
+      if (tab === 'active-orders') loadActiveOrders();
+      lucide.createIcons();
+    }
+
+    async function loadInitialData() {
+      try {
+        const res = await fetch('/api/events');
+        const json = await res.json();
+        if (json.success) {
+          eventsData = json.data;
+          renderEvents();
+        }
+        await loadActiveOrders();
+      } catch (err) {
+        showToast('Gagal memuat data event: ' + err.message, 'error');
+      }
+    }
+
+    function renderEvents() {
+      const container = document.getElementById('eventsContainer');
+      if (eventsData.length === 0) {
+        container.innerHTML = '<div class="col-span-full py-12 text-center text-slate-500">Tidak ada event aktif.</div>';
+        return;
+      }
+
+      container.innerHTML = eventsData.map(ev => {
+        return `
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 shadow-xl flex flex-col justify-between">
+            <div class="space-y-4">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="text-xl font-bold text-white">${ev.title}</h3>
+                  <p class="text-xs text-slate-400 mt-1 line-clamp-2">${ev.description || 'Event musik & teknologi spektakuler.'}</p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Aktif</span>
+              </div>
+
+              <!-- Ticket Types Quota Breakdown -->
+              <div class="space-y-3 pt-2">
+                <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Ketersediaan Kuota Tiket:</span>
+                <div class="space-y-2">
+                  ${ev.ticket_types.map(tt => `
+                    <div class="bg-slate-950/70 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between">
+                      <div>
+                        <div class="font-bold text-sm text-slate-100 flex items-center space-x-2">
+                          <span>${tt.name}</span>
+                          <span class="text-xs font-semibold text-indigo-400">${formatRupiah(tt.price)}</span>
+                        </div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">
+                          Total: <strong class="text-slate-300">${tt.total_quota}</strong> | 
+                          Terjual: <strong class="text-slate-300">${tt.sold_quota}</strong> | 
+                          Tertahan: <strong class="text-amber-400">${tt.reserved_quota}</strong>
+                        </div>
+                      </div>
+                      <div class="text-right">
+                        <div class="text-base font-extrabold ${tt.available_quota > 0 ? 'text-emerald-400' : 'text-rose-400'}">
+                          ${tt.available_quota} Sisa
+                        </div>
+                        <span class="text-[10px] text-slate-500">${tt.available_quota > 0 ? 'Tersedia' : 'Habis'}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+
+            <!-- Booking Action Form -->
+            <div class="pt-4 border-t border-slate-800/80 space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="text-[11px] font-semibold text-slate-400 block mb-1">Tipe Tiket</label>
+                  <select id="select-type-${ev.id}" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    ${ev.ticket_types.map(tt => `<option value="${tt.id}" ${tt.available_quota === 0 ? 'disabled' : ''}>${tt.name} (${tt.available_quota} sisa)</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label class="text-[11px] font-semibold text-slate-400 block mb-1">Jumlah (Maks 4)</label>
+                  <select id="select-qty-${ev.id}" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    <option value="1">1 Tiket</option>
+                    <option value="2">2 Tiket</option>
+                    <option value="3">3 Tiket</option>
+                    <option value="4">4 Tiket</option>
+                  </select>
+                </div>
+              </div>
+
+              <button onclick="orderTicket('${ev.id}')" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-xs text-white shadow-lg shadow-indigo-600/20 transition flex items-center justify-center space-x-2">
+                <i data-lucide="shopping-cart" class="w-3.5 h-3.5"></i>
+                <span>Pesan Tiket (Hold Kuota 15 Menit)</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    async function orderTicket(eventId) {
+      const buyerId = document.getElementById('userIdInput').value.trim() || 'budi.santoso@example.com';
+      const ticketTypeId = document.getElementById(`select-type-${eventId}`).value;
+      const quantity = parseInt(document.getElementById(`select-qty-${eventId}`).value, 10);
+
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: buyerId,
+            event_id: eventId,
+            items: [{ ticket_type_id: ticketTypeId, quantity }]
+          })
+        });
+
+        const json = await res.json();
+        if (res.ok && json.success) {
+          showToast(`Berhasil memesan ${quantity} tiket! Kuota ditahan selama 15 menit.`, 'success');
+          await loadInitialData();
+          switchTab('active-orders');
+        } else {
+          showToast(`Gagal: ${json.error || 'Terjadi kesalahan'}`, 'error');
+        }
+      } catch (err) {
+        showToast('Error request: ' + err.message, 'error');
+      }
+    }
+
+    async function loadActiveOrders() {
+      const buyerId = document.getElementById('userIdInput').value.trim() || 'budi.santoso@example.com';
+      try {
+        const res = await fetch(`/api/users/${encodeURIComponent(buyerId)}/orders`);
+        const json = await res.json();
+        if (json.success) {
+          pendingOrders = json.data.filter(o => o.status === 'PENDING');
+          const badge = document.getElementById('activeOrderBadge');
+          if (pendingOrders.length > 0) {
+            badge.innerText = pendingOrders.length;
+            badge.classList.remove('hidden');
+          } else {
+            badge.classList.add('hidden');
+          }
+          renderActiveOrders();
+        }
+      } catch (err) {
+        console.error('Error loadActiveOrders:', err);
+      }
+    }
+
+    function renderActiveOrders() {
+      const container = document.getElementById('activeOrdersContainer');
+      if (pendingOrders.length === 0) {
+        container.innerHTML = `
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-12 text-center space-y-3">
+            <i data-lucide="check-circle-2" class="w-12 h-12 text-slate-600 mx-auto"></i>
+            <h3 class="text-base font-bold text-slate-300">Tidak ada pesanan menunggu bayar</h3>
+            <p class="text-xs text-slate-500">Seluruh pesanan Anda sudah selesai atau telah dibatalkan.</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = pendingOrders.map(order => {
+        return `
+          <div class="bg-slate-900 border border-amber-500/30 rounded-2xl p-6 shadow-xl space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+              <div>
+                <span class="text-xs font-mono text-indigo-400 font-semibold">Order ID: #${order.id.slice(0, 8)}</span>
+                <h4 class="text-base font-bold text-white mt-0.5">${order.event_title || 'Event Tiket'}</h4>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center space-x-1.5">
+                  <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                  <span id="timer-${order.id}">15:00</span>
+                </span>
+                <span class="text-xs font-bold text-white bg-slate-800 px-3 py-1 rounded-full">${formatRupiah(order.total_amount)}</span>
+              </div>
+            </div>
+
+            <!-- Items -->
+            <div class="space-y-2">
+              ${order.items.map(item => `
+                <div class="flex justify-between text-xs text-slate-300 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+                  <span>${item.ticket_type_name} &times; ${item.quantity} Tiket</span>
+                  <span class="font-semibold text-slate-100">${formatRupiah(item.subtotal)}</span>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-2 flex flex-wrap gap-2 justify-end">
+              <button onclick="cancelOrder('${order.id}')" class="px-4 py-2 bg-slate-800 hover:bg-rose-950 hover:text-rose-300 hover:border-rose-800 text-xs text-slate-400 rounded-xl border border-slate-700 transition">
+                Batalkan Pesanan
+              </button>
+              <button onclick="payOrderWebhook('${order.id}', ${order.total_amount})" class="px-4 py-2 bg-purple-950/60 hover:bg-purple-900 border border-purple-500/30 text-xs text-purple-200 rounded-xl transition flex items-center space-x-1.5">
+                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                <span>Simulasi Webhook</span>
+              </button>
+              <button onclick="payOrderDirect('${order.id}')" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-xs text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center space-x-1.5">
+                <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
+                <span>Bayar Sekarang (Lunas)</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+      startTimers();
+    }
+
+    function startTimers() {
+      // Clear previous intervals
+      Object.values(timerIntervals).forEach(clearInterval);
+      timerIntervals = {};
+
+      pendingOrders.forEach(order => {
+        const timerElem = document.getElementById(`timer-${order.id}`);
+        if (!timerElem) return;
+
+        const expiresAt = new Date(order.expires_at).getTime();
+
+        const update = () => {
+          const now = Date.now();
+          const distance = expiresAt - now;
+
+          if (distance <= 0) {
+            timerElem.innerText = 'Kedaluwarsa (Expired)';
+            timerElem.classList.remove('text-amber-400');
+            timerElem.classList.add('text-rose-400');
+            clearInterval(timerIntervals[order.id]);
+            return;
+          }
+
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+          timerElem.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        };
+
+        update();
+        timerIntervals[order.id] = setInterval(update, 1000);
+      });
+    }
+
+    async function payOrderDirect(orderId) {
+      try {
+        const res = await fetch(`/api/orders/${orderId}/pay`, { method: 'POST' });
+        const json = await res.json();
+        if (res.ok && json.success) {
+          showToast('Pembayaran berhasil! Tiket unik telah diterbitkan.', 'success');
+          await loadInitialData();
+          switchTab('my-tickets');
+        } else {
+          showToast(`Gagal bayar: ${json.error || json.message}`, 'error');
+        }
+      } catch (err) {
+        showToast('Error bayar: ' + err.message, 'error');
+      }
+    }
+
+    async function payOrderWebhook(orderId, amount) {
+      const ref = 'WH-TEST-' + orderId.slice(0, 6) + '-' + Date.now();
+      try {
+        const res = await fetch('/api/payments/webhook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            payment_reference: ref,
+            order_id: orderId,
+            amount: amount,
+            status: 'SUCCESS'
+          })
+        });
+        const json = await res.json();
+        if (res.ok && json.success) {
+          showToast(`Webhook berhasil diproses (${json.code})! Tiket resmi diterbitkan.`, 'success');
+          await loadInitialData();
+          switchTab('my-tickets');
+        } else {
+          showToast(`Webhook ditolak: ${json.message || json.error}`, 'error');
+        }
+      } catch (err) {
+        showToast('Error webhook: ' + err.message, 'error');
+      }
+    }
+
+    async function cancelOrder(orderId) {
+      const buyerId = document.getElementById('userIdInput').value.trim() || 'budi.santoso@example.com';
+      try {
+        const res = await fetch(`/api/orders/${orderId}/cancel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: buyerId })
+        });
+        const json = await res.json();
+        if (res.ok && json.success) {
+          showToast('Pesanan berhasil dibatalkan dan kuota dikembalikan!', 'success');
+          await loadInitialData();
+          loadActiveOrders();
+        } else {
+          showToast(`Gagal batal: ${json.error}`, 'error');
+        }
+      } catch (err) {
+        showToast('Error cancel: ' + err.message, 'error');
+      }
+    }
+
+    async function loadUserTickets() {
+      const buyerId = document.getElementById('userIdInput').value.trim() || 'budi.santoso@example.com';
+      const container = document.getElementById('ticketsGrid');
+      container.innerHTML = '<div class="col-span-full py-8 text-center text-slate-500 text-xs">Memuat tiket...</div>';
+
+      try {
+        const res = await fetch(`/api/users/${encodeURIComponent(buyerId)}/tickets`);
+        const json = await res.json();
+        if (json.success && json.data.length > 0) {
+          container.innerHTML = json.data.map(tkt => `
+            <div class="ticket-stub bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-2xl relative overflow-hidden space-y-4">
+              <div class="border-b border-dashed border-slate-700/80 pb-3 flex justify-between items-start">
+                <div>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-400">Official E-Ticket</span>
+                  <h4 class="text-sm font-extrabold text-white mt-0.5 line-clamp-1">${tkt.event_title || 'Konser Musik'}</h4>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300">${tkt.ticket_type_name}</span>
+              </div>
+
+              <!-- Ticket Code Box -->
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 text-center space-y-1">
+                <span class="text-[10px] text-slate-500 uppercase tracking-widest font-mono">Kode Unik Tiket</span>
+                <div class="text-sm font-black font-mono tracking-wider text-emerald-400">${tkt.ticket_code}</div>
+              </div>
+
+              <div class="flex justify-between items-center text-[10px] text-slate-400 pt-1">
+                <span>Terbit: ${new Date(tkt.issued_at).toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                <span class="text-emerald-400 font-bold flex items-center space-x-1">
+                  <i data-lucide="check" class="w-3 h-3"></i>
+                  <span>Valid Entry</span>
+                </span>
+              </div>
+            </div>
+          `).join('');
+          lucide.createIcons();
+        } else {
+          container.innerHTML = `
+            <div class="col-span-full py-12 text-center text-slate-500 text-xs space-y-2">
+              <i data-lucide="ticket" class="w-8 h-8 text-slate-700 mx-auto"></i>
+              <p>Belum ada tiket yang terbit untuk email ini.</p>
+              <p class="text-[11px] text-slate-600">Pesan tiket dan selesaikan pembayaran untuk melihat e-tiket resmi.</p>
+            </div>
+          `;
+          lucide.createIcons();
+        }
+      } catch (err) {
+        container.innerHTML = `<div class="col-span-full py-8 text-center text-rose-400 text-xs">Error: ${err.message}</div>`;
+      }
+    }
+
+    async function runClientConcurrencyTest() {
+      const btn = document.getElementById('runConcurrencyBtn');
+      const prog = document.getElementById('concurrencyProgress');
+      const bar = document.getElementById('concurrencyProgressBar');
+      const statusText = document.getElementById('concurrencyStatusText');
+      const report = document.getElementById('concurrencyReport');
+
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+      prog.classList.remove('hidden');
+      report.classList.add('hidden');
+      bar.style.width = '20%';
+
+      try {
+        statusText.innerText = '1. Menyiapkan Event khusus dengan 100 kuota...';
+        const evRes = await fetch('/api/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: 'Live Stress Test Concert ' + Date.now().toString().slice(-4),
+            ticket_types: [
+              { name: 'REGULAR', price: 100000, quota: 70 },
+              { name: 'VIP', price: 200000, quota: 30 }
+            ]
+          })
+        });
+        const evJson = await evRes.json();
+        const testEvent = evJson.data;
+        const regId = testEvent.ticket_types.find(t => t.name === 'REGULAR').id;
+        const vipId = testEvent.ticket_types.find(t => t.name === 'VIP').id;
+
+        bar.style.width = '40%';
+        statusText.innerText = '2. Menembakkan 200 request bersamaan (Promise.all)...';
+
+        const tasks = [];
+        for (let i = 1; i <= 140; i++) tasks.push({ buyer: `stress-reg-${i}@bench.io`, typeId: regId, type: 'REGULAR' });
+        for (let i = 1; i <= 60; i++) tasks.push({ buyer: `stress-vip-${i}@bench.io`, typeId: vipId, type: 'VIP' });
+        const shuffled = tasks.sort(() => Math.random() - 0.5);
+
+        const startTime = Date.now();
+        const results = await Promise.all(
+          shuffled.map(t =>
+            fetch('/api/orders', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                user_id: t.buyer,
+                event_id: testEvent.id,
+                items: [{ ticket_type_id: t.typeId, quantity: 1 }]
+              })
+            }).then(r => r.status)
+          )
+        );
+        const duration = Date.now() - startTime;
+
+        bar.style.width = '80%';
+        statusText.innerText = '3. Menganalisis konsistensi dan integritas kuota...';
+
+        const successCount = results.filter(s => s === 201).length;
+        const rejectedCount = results.filter(s => s === 409).length;
+
+        const checkRes = await fetch(`/api/events/${testEvent.id}`);
+        const checkJson = await checkRes.json();
+        const finalReg = checkJson.data.ticket_types.find(t => t.name === 'REGULAR');
+        const finalVip = checkJson.data.ticket_types.find(t => t.name === 'VIP');
+
+        bar.style.width = '100%';
+        statusText.innerText = 'Selesai!';
+
+        report.classList.remove('hidden');
+        report.innerText = `
+================================================================
+📊 HASIL PENGUJIAN 200 REQUEST BERSAMAAN (LIVE BROWSER TEST)
+================================================================
+Total Request Dikirim      : 200 Request
+Waktu Eksekusi             : ${duration} ms
+Pesanan Diterima (201)     : ${successCount} / 100
+Pesanan Ditolak Kuota (409): ${rejectedCount} / 100
+----------------------------------------------------------------
+Sisa Kuota REGULAR Tersedia: ${finalReg.available_quota} (Reserved: ${finalReg.reserved_quota})
+Sisa Kuota VIP Tersedia    : ${finalVip.available_quota} (Reserved: ${finalVip.reserved_quota})
+Total Sisa Kuota           : ${finalReg.available_quota + finalVip.available_quota}
+Total Tiket Tertahan       : ${finalReg.reserved_quota + finalVip.reserved_quota}
+----------------------------------------------------------------
+${successCount === 100 && (finalReg.available_quota + finalVip.available_quota === 0) ?
+'✅ STATUS: LULUS 100% (ZERO OVERSELL! Kuota 100 tepat terjual 100)' :
+'❌ STATUS: GAGAL'}
+================================================================`;
+        await loadInitialData();
+      } catch (err) {
+        statusText.innerText = 'Error: ' + err.message;
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+      }
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      loadInitialData();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
