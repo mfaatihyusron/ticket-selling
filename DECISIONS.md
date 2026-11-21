@@ -23,7 +23,7 @@ Sistem dibangun menggunakan pola **Modular Monolith** dalam satu container Node.
 
 ---
 
-## 2. Strategi Penjualan Kuota & Pencegahan Oversell (200 Request Bersamaan)
+## 2. Strategi Penjualan Kuota & Pencegahan Oversell (Nilai Tambah #2: 200 Request Bersamaan)
 
 ### Masalah Konkurensi:
 Ketika 200 pembeli menekan tombol "Beli" secara serentak pada sisa kuota 100 tiket, *race condition* (Read-Modify-Write anomaly) dapat terjadi:
@@ -109,7 +109,7 @@ flowchart TD
 
 ---
 
-## 5. Webhook Pembayaran Idempoten & Kasus Tepi (Payment Gateway Resilience)
+## 5. Webhook Pembayaran Idempoten & Kasus Tepi (Nilai Tambah #1)
 
 Penyedia pembayaran riil (seperti Midtrans, Xendit, Stripe) menggunakan model *at-least-once delivery*, di mana notifikasi HTTP bisa dikirim berulang kali.
 
