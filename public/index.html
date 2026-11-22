@@ -149,10 +149,6 @@
         <i data-lucide="ticket" class="w-4 h-4"></i>
         <span>E-Tiket & Riwayat</span>
       </button>
-      <button onclick="switchTab('concurrency')" id="tab-concurrency" class="tab-btn px-4 py-2.5 font-medium text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
-        <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
-        <span class="text-amber-400">Uji Konkurensi 200 Pesanan</span>
-      </button>
     </div>
 
     <!-- TAB 1: Katalog Event & Beli -->
@@ -183,64 +179,6 @@
       </div>
       <div id="ticketsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Ticket cards rendered dynamically -->
-      </div>
-    </section>
-
-    <!-- TAB 4: Uji Konkurensi 200 Pesanan -->
-    <section id="concurrencySection" class="hidden space-y-6">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-6">
-        <div class="max-w-2xl">
-          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
-            <i data-lucide="zap" class="w-5 h-5 text-amber-400"></i>
-            <span>Simulasi Uji Konkurensi 200 Permintaan Serentak</span>
-          </h2>
-          <p class="text-sm text-slate-400 mt-2">
-            Menguji ketahanan sistem saat 200 pembeli unik berebut kuota 100 tiket pada milidetik yang sama menggunakan Promise paralel.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-            <span class="text-xs text-slate-400">Total Kuota Event</span>
-            <div class="text-2xl font-black text-white mt-1">100 Tiket</div>
-            <span class="text-[11px] text-slate-500">70 Reguler + 30 VIP</span>
-          </div>
-          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-            <span class="text-xs text-slate-400">Permintaan Masuk</span>
-            <div class="text-2xl font-black text-indigo-400 mt-1">200 User</div>
-            <span class="text-[11px] text-slate-500">Serentak di 1 batch</span>
-          </div>
-          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-            <span class="text-xs text-slate-400">Target Berhasil</span>
-            <div class="text-2xl font-black text-emerald-400 mt-1">Tepat 100</div>
-            <span class="text-[11px] text-emerald-500">HTTP 201 Created</span>
-          </div>
-          <div class="bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-            <span class="text-xs text-slate-400">Target Ditolak Kuota</span>
-            <div class="text-2xl font-black text-rose-400 mt-1">Tepat 100</div>
-            <span class="text-[11px] text-rose-500">HTTP 409 Conflict</span>
-          </div>
-        </div>
-
-        <div class="flex items-center space-x-4">
-          <button id="runConcurrencyBtn" onclick="runClientConcurrencyTest('app')" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 font-bold text-sm text-slate-950 shadow-lg shadow-amber-500/20 flex items-center space-x-2 transition">
-            <i data-lucide="play" class="w-4 h-4 fill-slate-950"></i>
-            <span>Jalankan Uji Konkurensi Sekarang</span>
-          </button>
-          <span class="text-xs text-slate-500">Atau jalankan skrip terminal: <code class="text-indigo-400 bg-slate-950 px-2 py-1 rounded">npm run test:concurrency</code></span>
-        </div>
-
-        <div id="concurrencyProgress" class="hidden space-y-3">
-          <div class="flex justify-between text-xs text-slate-300">
-            <span id="concurrencyStatusText">Mengirim 200 request bersamaan...</span>
-            <span id="concurrencyPercent">0%</span>
-          </div>
-          <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-            <div id="concurrencyProgressBar" class="bg-indigo-500 h-full w-0 transition-all duration-300"></div>
-          </div>
-        </div>
-
-        <div id="concurrencyReport" class="hidden bg-slate-950 rounded-xl p-4 font-mono text-xs border border-slate-800 text-slate-300 overflow-x-auto whitespace-pre"></div>
       </div>
     </section>
 
@@ -335,11 +273,10 @@
       document.getElementById(`tab-${tab}`).classList.add('border-indigo-500', 'text-white');
       document.getElementById(`tab-${tab}`).classList.remove('border-transparent', 'text-slate-400');
 
-      ['catalog', 'active-orders', 'my-tickets', 'concurrency'].forEach(t => {
+      ['catalog', 'active-orders', 'my-tickets'].forEach(t => {
         const sec = document.getElementById(t === 'catalog' ? 'catalogSection' :
-                                           t === 'active-orders' ? 'activeOrdersSection' :
-                                           t === 'my-tickets' ? 'myTicketsSection' : 'concurrencySection');
-        sec.classList.toggle('hidden', t !== tab);
+                                           t === 'active-orders' ? 'activeOrdersSection' : 'myTicketsSection');
+        if (sec) sec.classList.toggle('hidden', t !== tab);
       });
 
       if (tab === 'my-tickets') loadUserTickets();
@@ -703,13 +640,15 @@
       }
     }
 
-    async function runClientConcurrencyTest(context = 'app') {
+    async function runClientConcurrencyTest(context = 'login') {
       const isLogin = context === 'login';
       const btn = document.getElementById(isLogin ? 'loginRunConcurrencyBtn' : 'runConcurrencyBtn');
       const prog = document.getElementById(isLogin ? 'loginConcurrencyProgress' : 'concurrencyProgress');
       const bar = document.getElementById(isLogin ? 'loginConcurrencyProgressBar' : 'concurrencyProgressBar');
       const statusText = document.getElementById(isLogin ? 'loginConcurrencyStatusText' : 'concurrencyStatusText');
       const report = document.getElementById(isLogin ? 'loginConcurrencyReport' : 'concurrencyReport');
+
+      if (!btn || !prog || !bar || !statusText || !report) return;
 
       btn.disabled = true;
       btn.classList.add('opacity-50');

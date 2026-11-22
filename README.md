@@ -4,7 +4,7 @@ Backend RESTful API untuk platform penjualan tiket event dengan kuota terbatas, 
 
 ---
 
-## 📋 Daftar Isi
+## Daftar Isi
 1. [Fitur Utama & Pemenuhan Kebutuhan Bisnis](#fitur-utama--pemenuhan-kebutuhan-bisnis)
 2. [Fitur Lanjutan & Keandalan Sistem](#fitur-lanjutan--keandalan-sistem)
 3. [Bukti Uji Konkurensi 200 Pesanan Bersamaan](#bukti-uji-konkurensi-200-pesanan-bersamaan)
@@ -17,22 +17,22 @@ Backend RESTful API untuk platform penjualan tiket event dengan kuota terbatas, 
 
 ---
 
-## 🚀 Fitur Utama & Pemenuhan Kebutuhan Bisnis
+## Fitur Utama & Pemenuhan Kebutuhan Bisnis
 
 | No | Kebutuhan Bisnis | Status | Implementasi Teknis |
 | :--- | :--- | :---: | :--- |
-| 1 | Event dengan kuota terbatas & multi-tipe (Reguler, VIP) | ✅ | Tabel `events` & `ticket_types`, endpoint `POST /api/events` |
-| 2 | Pembeli melihat event dan sisa kuota tiap tipe | ✅ | Kalkulasi real-time: `available = total - reserved - sold` |
-| 3 | Pesanan 1-4 tiket, status "menunggu bayar", tahan kuota 15 menit | ✅ | Status `PENDING`, `expires_at = NOW() + 15m`, kuota dialokasikan ke `reserved_quota` |
-| 4 | Maksimal 4 tiket per pembeli per event (aktif + lunas) | ✅ | Validasi transaksional `SUM(quantity) <= 4` untuk status `PENDING` dan `PAID` |
-| 5 | Pembeli bisa membatalkan pesanan sebelum bayar | ✅ | Endpoint `POST /api/orders/:id/cancel`, `reserved_quota` langsung dikembalikan seketika |
-| 6 | Simulasi pembayaran (tandai lunas via endpoint/skrip) | ✅ | Endpoint `POST /api/orders/:id/pay` dan `POST /api/payments/simulate` |
-| 7 | Pembayaran menerbitkan tiket kode unik (tanpa duplikasi) | ✅ | Kode unik format `TKT-{TYPE}-{ORDER}-{INDEX}-{RANDOM}` dengan DB UNIQUE constraint |
-| 8 | Pembeli melihat riwayat pesanan dan tiketnya | ✅ | Endpoint `GET /api/users/:userId/orders` dan `/tickets` |
+| 1 | Event dengan kuota terbatas & multi-tipe (Reguler, VIP) | Terpenuhi | Tabel `events` & `ticket_types`, endpoint `POST /api/events` |
+| 2 | Pembeli melihat event dan sisa kuota tiap tipe | Terpenuhi | Kalkulasi real-time: `available = total - reserved - sold` |
+| 3 | Pesanan 1-4 tiket, status "menunggu bayar", tahan kuota 15 menit | Terpenuhi | Status `PENDING`, `expires_at = NOW() + 15m`, kuota dialokasikan ke `reserved_quota` |
+| 4 | Maksimal 4 tiket per pembeli per event (aktif + lunas) | Terpenuhi | Validasi transaksional `SUM(quantity) <= 4` untuk status `PENDING` dan `PAID` |
+| 5 | Pembeli bisa membatalkan pesanan sebelum bayar | Terpenuhi | Endpoint `POST /api/orders/:id/cancel`, `reserved_quota` langsung dikembalikan seketika |
+| 6 | Simulasi pembayaran (tandai lunas via endpoint/skrip) | Terpenuhi | Endpoint `POST /api/orders/:id/pay` dan `POST /api/payments/simulate` |
+| 7 | Pembayaran menerbitkan tiket kode unik (tanpa duplikasi) | Terpenuhi | Kode unik format `TKT-{TYPE}-{ORDER}-{INDEX}-{RANDOM}` dengan DB UNIQUE constraint |
+| 8 | Pembeli melihat riwayat pesanan dan tiketnya | Terpenuhi | Endpoint `GET /api/users/:userId/orders` dan `/tickets` |
 
 ---
 
-## 🛡️ Fitur Lanjutan & Keandalan Sistem (*Advanced Reliability*)
+## Fitur Lanjutan & Keandalan Sistem (*Advanced Reliability*)
 
 ### 1. Webhook Pembayaran Idempoten (`POST /api/payments/webhook`)
 Mendukung skenario payment gateway sungguhan:
@@ -44,13 +44,13 @@ Pengujian konkurensi (*race condition*) menembakkan 200 permintaan HTTP serentak
 
 ---
 
-## 📊 Bukti Uji Konkurensi 200 Pesanan Bersamaan
+## Bukti Uji Konkurensi 200 Pesanan Bersamaan
 
 Pengujian dieksekusi menggunakan skrip `scripts/concurrency-test.ts` (dapat dijalankan via `npm run test:concurrency`).
 
 ```text
 ================================================================
-🔥 MEMULAI UJI KONKURENSI 200 PESANAN BERSAMAAN (100 KUOTA) 🔥
+MEMULAI UJI KONKURENSI 200 PESANAN BERSAMAAN (100 KUOTA)
 ================================================================
 
 1. Menyiapkan Event dengan kuota terbatas...
@@ -76,7 +76,7 @@ Pengujian dieksekusi menggunakan skrip `scripts/concurrency-test.ts` (dapat dija
 4. Melakukan simulasi pembayaran untuk 100 pesanan yang berhasil...
 
 ================================================================
-📊 LAPORAN AKHIR VERIFIKASI KONKURENSI & INTEGRITAS DATA
+LAPORAN AKHIR VERIFIKASI KONKURENSI & INTEGRITAS DATA
 ================================================================
 Total Waktu Pengujian       : 6100 ms
 Pesanan Berhasil Dibayar    : 100 / 100
@@ -87,7 +87,7 @@ Total Sisa Kuota            : 0
 Total Tiket Terjual         : 100
 Reserved Quota Menggantung  : 0
 ----------------------------------------------------------------
-✅ STATUS UJI: LULUS SEMPURNA (100% PASS)
+STATUS UJI: LULUS SEMPURNA (100% PASS)
    - Kuota 100 tiket terjual TEPAT 100 tiket.
    - 0 Oversell terjadi.
    - 0 Duplikasi tiket.
@@ -97,7 +97,7 @@ Reserved Quota Menggantung  : 0
 
 ---
 
-## 🐳 Cara Menjalankan Sistem (Satu Perintah)
+## Cara Menjalankan Sistem (Satu Perintah)
 
 Sistem (REST API, Database PostgreSQL, dan Seeder Otomatis) dapat dihidupkan pada mesin bersih yang memiliki Docker dengan **satu perintah**:
 
@@ -117,7 +117,7 @@ docker compose down -v
 
 ---
 
-## 🧪 Cara Menjalankan Pengujian Otomatis
+## Cara Menjalankan Pengujian Otomatis
 
 Proyek ini dilengkapi dengan *Automated Integration Tests* lengkap menggunakan framework Vitest:
 
@@ -138,7 +138,7 @@ npm run test:concurrency
 
 ---
 
-## 💳 Panduan Simulasi Pembayaran & Webhook
+## Panduan Simulasi Pembayaran & Webhook
 
 ### Cara 1: Menggunakan Endpoint Simulasi Langsung
 Setelah pesanan dibuat, pembeli dapat menandai pesanan sebagai lunas:
@@ -170,7 +170,7 @@ curl -X POST http://localhost:3000/api/payments/webhook \
 
 ---
 
-## 📖 Dokumentasi Endpoint REST API
+## Dokumentasi Endpoint REST API
 
 ### 1. Events
 - **Melihat Semua Event & Sisa Kuota**
@@ -240,7 +240,7 @@ curl -X POST http://localhost:3000/api/payments/webhook \
 
 ---
 
-## ⚙️ Pipeline CI/CD
+## Pipeline CI/CD
 
 Konfigurasi CI/CD terletak pada file `.github/workflows/ci.yml`.
 
@@ -253,7 +253,7 @@ Alur pipeline:
 
 ---
 
-## 📁 Struktur Repositori
+## Struktur Repositori
 
 ```text
 ticket-selling/
